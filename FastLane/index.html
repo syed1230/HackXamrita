@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastLane — Emergency Response & Hospital Routing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="indexcss.css">
+</head>
+<body>
+  <!-- TOP NAVIGATION ========================================= -->
+  <nav class="top-nav">
+    <div class="nav-left">🚑 FastLane</div>
+    
+    <div class="nav-center">
+      <a href="index.html" class="nav-link">🏠 Home</a>
+      <a href="hospital.html" class="nav-link">🏥 Hospital</a>
+      <a href="driver.html" class="nav-link">🚑 Driver</a>
+      <a href="simulation.html" class="nav-link">⚙️ Simulation</a>
+    </div>
+    
+    <div class="nav-right">
+      <!-- Simulation Toggle -->
+      <div class="sim-toggle-group">
+        <span class="sim-label">SIMULATION</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="simToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <!-- Network Status -->
+      <div class="network-status" id="networkStatus">
+        <span class="status-dot"></span>
+        <span id="networkText">Online</span>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- MAIN CONTENT ========================================= -->
+  <div class="main-container">
+    <!-- SOS EMERGENCY BUTTON ===================================== -->
+    <div class="sos-container">
+      <button class="sos-button" id="sos-button" title="Click for emergency dispatch">
+        <span class="sos-label">SOS</span>
+        <span class="sos-sublabel">Emergency</span>
+      </button>
+      <p style="font-size: 12px; color: var(--gray-600); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Click to initiate emergency response</p>
+    </div>
+    
+    <!-- PATIENT CONDITION BUTTON (APPEARS AFTER SOS) ===================================== -->
+    <div id="patientConditionContainer" style="display: none; text-align: center; margin-bottom: 40px;">
+      <button class="dashboard-btn" style="background: linear-gradient(135deg, var(--emergency-red) 0%, #991b1b 100%); max-width: 400px; margin: 0 auto; padding: 16px 32px; font-size: 14px;" id="patientConditionBtn">
+        📋 Fill Patient Condition & Triage
+      </button>
+    </div>
+    
+    <!-- DASHBOARD CARDS ========================================= -->
+    <div class="dashboard-grid">
+      <!-- Paramedic Dashboard -->
+      <div class="dashboard-card paramedic">
+        <h3>🚑 Paramedic Dashboard</h3>
+        <p>Real-time routing & patient protocols</p>
+        <button class="dashboard-btn paramedic" onclick="location.href='driver.html'">Open Paramedic</button>
+      </div>
+      
+      <!-- Hospital Hub -->
+      <div class="dashboard-card hospital">
+        <h3>🏥 Hospital Hub</h3>
+        <p>Resource availability & readiness</p>
+        <button class="dashboard-btn hospital" onclick="location.href='hospital.html'">Open Hospital</button>
+      </div>
+      
+      <!-- Simulation Mode -->
+      <div class="dashboard-card" style="border-color: var(--warning-orange);">
+        <h3>⚙️ Simulation Mode</h3>
+        <p>Offline emergency optimization</p>
+        <button class="dashboard-btn" style="background: linear-gradient(135deg, var(--warning-orange) 0%, #b45309 100%);" onclick="location.href='simulation.html'">Enter Simulation</button>
+      </div>
+    </div>
+    
+    <!-- SYSTEM TICKER ========================================= -->
+    <div class="ticker-section">
+      <div class="ticker-header">📊 Live System Status</div>
+      <div class="ticker-grid">
+        <div class="ticker-item">
+          <div class="ticker-value" id="bedCount">87</div>
+          <div class="ticker-label">Available Beds</div>
+        </div>
+        <div class="ticker-item">
+          <div class="ticker-value" id="ambulanceCount">12</div>
+          <div class="ticker-label">Active Ambulances</div>
+        </div>
+        <div class="ticker-item">
+          <div class="ticker-value" id="hospitalCount">8</div>
+          <div class="ticker-label">Hospitals Online</div>
+        </div>
+        <div class="ticker-item">
+          <div class="heartbeat">❤️</div>
+          <div class="ticker-label" style="margin-top: 8px;">System Heartbeat</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TRIAGE SECTION (HIDDEN, ACTIVATED BY SOS) ========================================= -->
+    <div class="triage-section" id="triageSection">
+      <div class="triage-header">
+        🚨 AI Emergency Triage System
+      </div>
+      
+      <div class="triage-grid">
+        <!-- Voice Input -->
+        <div class="triage-card">
+          <div class="triage-title">🎤 Voice Input</div>
+          <button class="triage-btn" id="voiceBtn">Start Voice Triage</button>
+          <textarea id="voiceTranscript" class="triage-input" rows="4" placeholder="Transcribed symptoms will appear here..." readonly></textarea>
+          <div class="severity-display" id="voiceSeverity">--</div>
+        </div>
+        
+        <!-- Text Input -->
+        <div class="triage-card">
+          <div class="triage-title">⌨️ Text Input</div>
+          <textarea id="textSymptoms" class="triage-input" rows="4" placeholder="Type symptoms (e.g., chest pain, shortness of breath, fall)..."></textarea>
+          <button class="triage-btn secondary" id="textAnalyze">Analyze Severity</button>
+          <div class="severity-display" id="textSeverity">--</div>
+        </div>
+        
+        <!-- Camera Input -->
+        <div class="triage-card">
+          <div class="triage-title">📷 Camera Input</div>
+          <button class="triage-btn" id="startCamera">Start Camera</button>
+          <button class="triage-btn secondary" id="capturePhoto" disabled>Capture</button>
+          <video id="camPreview" class="triage-input" style="display: none; margin-bottom: 10px;" autoplay playsinline></video>
+          <div class="severity-display" id="cameraSeverity">--</div>
+        </div>
+      </div>
+      
+      <!-- Dispatch Action -->
+      <div style="margin-top: 24px; text-align: center;">
+        <button id="proceedToDispatch" class="dashboard-btn" style="background: linear-gradient(135deg, var(--emergency-red) 0%, #991b1b 100%); max-width: 400px; margin: 0 auto;">
+          🚑 Proceed to Dispatch & Golden Hour
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JavaScript Files ================================= -->
+  <script src="indexjs.js"></script>
+  <script src="sos_emergency.js"></script>
+</body>
+</html>

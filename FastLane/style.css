@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+:root{--red:#d62828;--white:#ffffff;--soft-pink:#ffeef0;--muted:#667085;--bg:#fafafa;--card:#fff;--accent:#ef476f}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#09233b}
+.top-nav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--card);box-shadow:0 2px 8px rgba(12,25,40,.06);position:sticky;top:0;z-index:100}
+.nav-left{font-weight:700;color:var(--accent)}
+.nav-right{display:flex;gap:8px;align-items:center}
+.nav-link{background:transparent;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;color:#16324f}
+.nav-link.active{background:linear-gradient(90deg,#fff,#f7fbff);box-shadow:0 6px 18px rgba(12,25,40,.06)}
+.network-status{font-size:13px;padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.06)}
+.net-online{color:#0ea25a}
+.net-offline{color:#ff7a45}
+
+.container{max-width:1100px;margin:18px auto;padding:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 8px 26px rgba(9,35,59,.04)}
+.h1{font-size:20px;margin:0 0 10px}
+.muted{color:var(--muted);font-size:13px}
+
+/* SOS floating */
+.sos-float{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:200}
+.sos-btn{background:var(--red);color:var(--white);border:0;padding:18px 30px;border-radius:40px;font-size:18px;font-weight:800;box-shadow:0 12px 30px rgba(214,40,40,.28);cursor:pointer;animation:heartbeat 1.8s infinite}
+@keyframes heartbeat{0%{transform:translateX(-50%) scale(1)}45%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1)}}
+
+/* SOS alert when critical triage detected */
+.sos-btn.sos-alert{box-shadow:0 10px 40px rgba(214,40,40,.45),0 0 40px rgba(214,40,40,.12);transform:translateX(-50%) scale(1.03);animation:heartbeat 1.2s infinite}
+.sos-btn.sos-glow{outline:6px solid rgba(214,40,40,.06);}
+
+/* Severity styles */
+.severity-low{color:#0ea25a;font-weight:700}
+.severity-moderate{color:#ff8a00;font-weight:700}
+.severity-critical{color:var(--red);font-weight:900;text-shadow:0 4px 18px rgba(214,40,40,.12)}
+
+/* small helper for highlighted cards */
+.card.alert-critical{border:2px solid rgba(214,40,40,.08);box-shadow:0 12px 30px rgba(214,40,40,.06)}
+
+/* toasts */
+.toast{position:fixed;right:18px;bottom:110px;background:#061a2b;color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 20px rgba(3,18,34,.6);z-index:400}
+
+/* hospital dashboard */
+.stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.meter{height:12px;background:#f1f5f9;border-radius:999px;overflow:hidden}
+.meter > i{display:block;height:100%;background:linear-gradient(90deg,#ef476f,#ffd166);width:40%}
+
+/* driver map area */
+.map-wrap{position:relative;border-radius:8px;overflow:hidden}
+#map-overlay{position:absolute;inset:0;pointer-events:none}
+.map-placeholder{height:320px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fff4f6,#fffafc);color:var(--muted)}
+.direct-metric{position:absolute;right:18px;bottom:18px;background:rgba(10,24,38,.94);color:#fff;padding:12px;border-radius:10px;min-width:200px}
+.direct-metric .label{font-size:12px;opacity:.85}
+.direct-metric .value{font-size:16px;margin-top:6px}
+.glow-line{filter:drop-shadow(0 0 8px rgba(123,233,255,.9))}
+
+/* simulation animations */
+.pulse{animation:ping 1.6s infinite}
+@keyframes ping{0%{opacity:.95;transform:scale(1)}50%{opacity:.2;transform:scale(1.4)}100%{opacity:.95;transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* responsive */
+@media(max-width:720px){.container{padding:6px}.map-placeholder{height:220px}.direct-metric{right:12px;left:12px;bottom:12px}}

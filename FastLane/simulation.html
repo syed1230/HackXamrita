@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FastLane — Simulation Mode</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="simulation">
+  <header class="top-nav">
+    <div class="nav-left">FastLane</div>
+    <div class="nav-right">
+      <button class="nav-link" data-page="home" onclick="location.href='index.html'">🏠 Home</button>
+      <button id="signInBtn" class="nav-link">🔐 Sign In</button>
+      <div id="networkStatus" class="network-status">--</div>
+    </div>
+  </header>
+  <main class="container">
+    <h2 class="h1">Offline Emergency Optimization Mode Active</h2>
+    <p class="muted">Simulation & Audit (offline only)</p>
+    <div class="card">
+      <div class="map-wrap"><div id="simMap" class="map-placeholder">Map placeholder — glowing route</div><svg id="map-overlay" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+        <div class="direct-metric" style="left:18px;right:auto;bottom:18px"><div class="label">Direct</div><div class="value" id="simDirect">-- km</div><div class="label">Ideal</div><div class="value" id="simIdeal">-- min</div><div class="label">Actual</div><div class="value" id="simActual">-- min</div><div class="score" id="simEff">-- %</div></div>
+      </div>
+      <div style="margin-top:12px">Golden Hour: <strong id="goldenCountdown">--:--</strong></div>
+    </div>
+  </main>
+
+  <div class="sos-float"><button id="sos-button" class="sos-btn" title="Click to trigger SOS Emergency">🔴 SOS Emergency</button></div>
+
+  <script src="script.js"></script>
+  <script src="sos_emergency.js"></script>
+</body>
+</html>

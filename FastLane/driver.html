@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastLane — Ambulance Driver Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <style>
+    /* ============= RESET & GLOBALS ============= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      height: 100%; 
+      font-family: 'Inter', system-ui, sans-serif; 
+      background: #f5f7fa; 
+      color: #1a202c;
+    }
+    
+    /* ============= COLOR PALETTE ============= */
+    :root {
+      --emergency-red: #dc2626;
+      --medical-blue: #1e3a8a;
+      --hospital-green: #059669;
+      --warning-orange: #d97706;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --success-green: #10b981;
+    }
+    
+    /* ============= ANIMATIONS ============= */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 10px rgba(220, 38, 38, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.9); }
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(-100%); opacity: 0; }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* ============= TOP NAVIGATION ============= */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: linear-gradient(135deg, var(--medical-blue) 0%, #2d5a8c 100%);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2);
+      z-index: 50;
+    }
+    
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-weight: 800;
+      font-size: 16px;
+    }
+    
+    .ambulance-id {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex: 1;
+      margin: 0 24px;
+    }
+    
+    .driver-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .driver-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .driver-name {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .system-time {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.9;
+      min-width: 70px;
+    }
+    
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    /* ============= STATUS TOGGLE ============= */
+    .status-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .status-toggle input {
+      display: none;
+    }
+    
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success-green);
+      animation: pulse 2s infinite;
+    }
+    
+    .status-indicator.critical {
+      background: var(--emergency-red);
+      animation: glow 1.5s infinite;
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);
+    }
+    
+    .status-text {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-toggle-switch {
+      position: relative;
+      width: 35px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: 0.3s;
+    }
+    
+    .status-toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--white);
+      top: 2px;
+      left: 2px;
+      transition: 0.3s;
+    }
+    
+    .status-toggle input:checked + .status-toggle-switch {
+      background: var(--emergency-red);
+    }
+    
+    .status-toggle input:checked + .status-toggle-switch::after {
+      transform: translateX(15px);
+    }
+    
+    /* ============= NETWORK INDICATOR ============= */
+    .network-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      text-transform: uppercase;
+    }
+    
+    .network-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success-green);
+      animation: pulse 2s infinite;
+    }
+    
+    .network-indicator.offline {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: rgba(220, 38, 38, 0.4);
+    }
+    
+    .network-indicator.offline .network-dot {
+      background: var(--emergency-red);
+      animation: glow 1s infinite;
+    }
+    
+    /* ============= NAVIGATION BUTTONS ============= */
+    .nav-button {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .nav-button:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    .nav-button:active {
+      transform: translateY(0);
+    }
+    .container {
+      margin-top: 70px;
+      display: flex;
+      height: calc(100vh - 70px);
+      gap: 0;
+    }
+    
+    /* ============= MAP SECTION ============= */
+    .map-section {
+      flex: 1;
+      background: #f0f4ff;
+      position: relative;
+      border-right: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .map-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+    
+    .india-map {
+      width: 100%;
+      height: 100%;
+      max-width: 500px;
+      max-height: 500px;
+    }
+    
+    .map-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 8px rgba(30, 58, 138, 0.1));
+    }
+    
+    /* ============= ROUTING PANEL ============= */
+    .routing-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--white);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      max-width: 280px;
+      z-index: 20;
+    }
+    
+    .routing-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 13px;
+    }
+    
+    .routing-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .routing-label {
+      color: var(--gray-600);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    
+    .routing-value {
+      font-weight: 700;
+      color: var(--medical-blue);
+    }
+    
+    .traffic-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .traffic-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-green);
+    }
+    
+    .traffic-dot.moderate {
+      background: var(--warning-orange);
+    }
+    
+    .traffic-dot.heavy {
+      background: var(--emergency-red);
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--medical-blue), var(--hospital-green));
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    
+    .recalculate-btn {
+      width: 100%;
+      padding: 10px;
+      background: var(--medical-blue);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .recalculate-btn:hover {
+      background: #0f2a5d;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+    }
+    
+    /* ============= SIDE PANELS ============= */
+    .side-panels {
+      width: 340px;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--gray-200);
+      overflow-y: auto;
+    }
+    
+    .panel {
+      padding: 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--medical-blue);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* ============= PATIENT PANEL ============= */
+    .patient-info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    
+    .patient-label {
+      color: var(--gray-600);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    
+    .patient-value {
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+    
+    .severity-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .severity-low {
+      background: rgba(16, 185, 129, 0.2);
+      color: #059669;
+    }
+    
+    .severity-moderate {
+      background: rgba(217, 119, 6, 0.2);
+      color: #d97706;
+    }
+    
+    .severity-critical {
+      background: rgba(220, 38, 38, 0.2);
+      color: #dc2626;
+      animation: pulse 1.5s infinite;
+    }
+    
+    /* ============= QR CODE PANEL ============= */
+    .qr-code-container {
+      display: flex;
+      justify-content: center;
+      margin: 16px 0;
+      padding: 12px;
+      background: var(--gray-50);
+      border-radius: 8px;
+    }
+    
+    #qrCode {
+      width: 120px !important;
+      height: 120px !important;
+    }
+    
+    #qrCode canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    /* ============= HOSPITAL PANEL ============= */
+    .hospital-metrics {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 10px;
+      background: var(--gray-50);
+      border-radius: 6px;
+    }
+    
+    .metric-label {
+      color: var(--gray-600);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    
+    .metric-value {
+      font-weight: 800;
+      color: var(--medical-blue);
+    }
+    
+    .readiness-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+    
+    .readiness-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--emergency-red), var(--warning-orange), var(--hospital-green));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    /* ============= CONFIDENCE PANEL ============= */
+    .confidence-score {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    
+    .confidence-label {
+      color: var(--gray-600);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    
+    .confidence-percentage {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--hospital-green);
+    }
+    
+    /* ============= ALERT POPUP ============= */
+    .alert-popup {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: var(--white);
+      border-left: 4px solid var(--emergency-red);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      max-width: 300px;
+      animation: slideIn 0.3s ease;
+      z-index: 100;
+    }
+    
+    .alert-popup.hidden {
+      animation: slideOut 0.3s ease;
+      display: none;
+    }
+    
+    .alert-title {
+      font-weight: 800;
+      color: var(--emergency-red);
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    
+    .alert-message {
+      font-size: 12px;
+      color: var(--gray-700);
+      line-height: 1.4;
+    }
+    
+    /* ============= HOSPITAL COMPARISON ============= */
+    .hospital-comparison {
+      font-size: 12px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--gray-200);
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .comparison-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: var(--gray-50);
+      border-radius: 6px;
+      border-left: 3px solid var(--gray-200);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .comparison-item:hover {
+      background: #e8f0ff;
+      border-left-color: var(--medical-blue);
+    }
+    
+    .comparison-hospital-name {
+      font-weight: 700;
+      color: var(--gray-900);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    
+    .comparison-metric {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--gray-600);
+      margin-top: 4px;
+    }
+    
+    /* ============= RESPONSIVE ============= */
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .map-section {
+        border-right: none;
+        border-bottom: 1px solid var(--gray-200);
+        height: 50%;
+      }
+      
+      .side-panels {
+        width: 100%;
+        height: 50%;
+        border-left: none;
+      }
+      
+      .routing-panel {
+        max-width: 250px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .top-nav {
+        padding: 0 12px;
+      }
+      
+      .nav-center {
+        display: none;
+      }
+      
+      .map-container {
+        padding: 12px;
+      }
+      
+      .routing-panel {
+        bottom: 12px;
+        left: 12px;
+        font-size: 11px;
+      }
+      
+      .side-panels {
+        overflow-y: auto;
+        max-height: 50vh;
+      }
+      
+      .panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ============= TOP NAVIGATION ============= -->
+  <nav class="top-nav">
+    <div class="nav-left">
+      <span>🚑 FastLane</span>
+      <div class="ambulance-id" id="ambulanceId">AMB-124</div>
+    </div>
+    
+    <div class="nav-center">
+      <div class="driver-info">
+        <div class="driver-avatar">👨</div>
+        <div class="driver-name" id="driverName">Sarah Martinez</div>
+      </div>
+      <div class="system-time" id="systemTime">00:00</div>
+    </div>
+    
+    <div class="nav-right">
+      <label class="status-toggle">
+        <input type="checkbox" id="statusToggle">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <span class="status-text" id="statusText">Normal</span>
+        <div class="status-toggle-switch"></div>
+      </label>
+      
+      <div class="network-indicator" id="networkIndicator">
+        <div class="network-dot"></div>
+        <span id="networkText">Online</span>
+      </div>
+      
+      <!-- Navigation Links ============= -->
+      <div style="display: flex; gap: 10px; margin-left: 20px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.2);">
+        <a href="index.html" class="nav-button" title="Home">🏠 Home</a>
+        <a href="hospital.html" class="nav-button" title="Hospital">🏥 Hospital</a>
+        <a href="simulation.html" class="nav-button" title="Simulation">⚙️ Sim</a>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- ============= MAIN CONTAINER ============= -->
+  <div class="container">
+    <!-- MAP SECTION ============= -->
+    <div class="map-section">
+      <div class="map-container">
+        <svg class="map-svg" id="mapSvg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
+          <!-- India outline (simplified) -->
+          <g id="indiaMap">
+            <!-- Main body -->
+            <path d="M 200 50 L 350 40 L 380 60 L 400 80 L 390 120 L 450 100 L 480 150 L 500 140 L 520 180 L 550 170 L 560 220 L 540 260 L 580 280 L 570 320 L 520 340 L 500 380 L 480 360 L 450 390 L 420 370 L 380 400 L 350 390 L 320 420 L 300 400 L 280 430 L 250 420 L 230 380 L 200 390 L 180 360 L 160 380 L 150 340 L 140 300 L 160 260 L 150 220 L 170 180 L 160 140 L 180 100 L 200 80 Z" fill="#e0f2fe" stroke="#1e3a8a" stroke-width="2"/>
+            
+            <!-- Ambulance position (animated) -->
+            <circle id="ambulancePos" cx="300" cy="250" r="8" fill="#dc2626" stroke="#91000a" stroke-width="2">
+              <animate attributeName="r" values="8;10;8" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            
+            <!-- Route path (animated) -->
+            <polyline id="routePath" points="300,250 350,280 400,300 420,320" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="100" stroke-dashoffset="100">
+              <animate attributeName="stroke-dashoffset" values="100;0" dur="3s" repeatCount="indefinite"/>
+            </polyline>
+            
+            <!-- Hospital markers (clickable) -->
+            <g id="hospitals"></g>
+          </g>
+          
+          <!-- Legend -->
+          <text x="20" y="560" font-size="12" fill="#4b5563" font-weight="600">● Ambulance  ✚ Hospital  Route</text>
+        </svg>
+      </div>
+      
+      <!-- Routing Panel ============= -->
+      <div class="routing-panel">
+        <div class="routing-item">
+          <div class="routing-label">Distance</div>
+          <div class="routing-value" id="distanceVal">142 km</div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-label">ETA</div>
+          <div class="routing-value" id="etaVal">2h 24m</div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-label">Traffic</div>
+          <div class="routing-value traffic-indicator">
+            <div class="traffic-dot" id="trafficDot"></div>
+            <span id="trafficText">Smooth</span>
+          </div>
+        </div>
+        <div class="routing-item">
+          <div class="routing-label">Progress</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 45%;"></div>
+          </div>
+          <span style="font-size: 11px; color: var(--gray-600); margin-top: 4px;">45%</span>
+        </div>
+        <button class="recalculate-btn" id="recalculateBtn">Recalculate Route</button>
+      </div>
+    </div>
+    
+    <!-- SIDE PANELS ============= -->
+    <div class="side-panels">
+      <!-- Patient Panel ============= -->
+      <div class="panel">
+        <div class="panel-title">📋 Patient Details</div>
+        <div class="patient-info-item">
+          <div class="patient-label">ID</div>
+          <div class="patient-value" id="patientId">PAT-15847</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-label">Name</div>
+          <div class="patient-value" id="patientName">John Doe</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-label">Age</div>
+          <div class="patient-value" id="patientAge">42</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-label">Blood Group</div>
+          <div class="patient-value" id="patientBG">O+</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-label">Emergency Type</div>
+          <div class="patient-value" id="emergencyType">Cardiac</div>
+        </div>
+        <div class="patient-info-item">
+          <div class="patient-label">Severity</div>
+          <div class="severity-badge severity-critical" id="severityBadge">Critical</div>
+        </div>
+        
+        <!-- QR Code ============= -->
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+          <div class="panel-title" style="margin-bottom: 12px;">QR Code Data</div>
+          <div class="qr-code-container">
+            <div id="qrCode"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Hospital Details ============= -->
+      <div class="panel">
+        <div class="panel-title">🏥 Hospital Details</div>
+        <div class="hospital-metrics">
+          <div class="metric">
+            <span class="metric-label">Hospital Name</span>
+            <span class="metric-value" id="hospitalName">St. Mary's</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">ICU Beds</span>
+            <span class="metric-value" id="icuBeds">8/12</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Specialists</span>
+            <span class="metric-value" id="specialists">6/8</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Emergency Load</span>
+            <span class="metric-value" id="emergencyLoad">45%</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Stabilization Time</span>
+            <span class="metric-value" id="stabTime">2-4 hrs</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Readiness Score</span>
+            <span class="metric-value" id="readinessScore">92%</span>
+            <div class="readiness-bar">
+              <div class="readiness-fill" id="readinessFill" style="width: 92%;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Confidence Score ============= -->
+        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+          <div class="confidence-score">
+            <div>
+              <div class="confidence-label">Route Confidence</div>
+              <div style="font-size: 12px; color: var(--gray-600); margin-top: 4px;">Hospital + Traffic</div>
+            </div>
+            <div class="confidence-percentage" id="confidenceScore">92%</div>
+          </div>
+        </div>
+        
+        <!-- Hospital Comparison ============= -->
+        <div class="hospital-comparison" id="hospitalComparison">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ALERT POPUP ============= -->
+  <div class="alert-popup hidden" id="alertPopup">
+    <div class="alert-title">⚠️ Hospital Alert</div>
+    <div class="alert-message" id="alertMessage">Hospital at capacity. Rerouting...</div>
+  </div>
+  
+  <!-- ============= JAVASCRIPT ============= -->
+  <script>
+    // ==================== MOCK DATA ====================
+    const mockAmbulance = {
+      id: 'AMB-124',
+      driver: 'Sarah Martinez',
+      status: 'normal', // normal or critical
+      position: { lat: 13.0827, lng: 80.2707 }, // Chennai
+      destination: null
+    };
+    
+    const mockPatient = {
+      id: 'PAT-15847',
+      name: 'John Doe',
+      age: 42,
+      bloodGroup: 'O+',
+      emergencyType: 'Cardiac',
+      severity: 'CRITICAL'
+    };
+    
+    // ==================== GENERATE RANDOM HOSPITAL LOCATIONS ====================
+    function generateRandomHospitals() {
+      const hospitalNames = [
+        'St. Mary\'s Medical Center',
+        'Apollo Hospital',
+        'Fortis Healthcare',
+        'Vijaya Hospital',
+        'Max Healthcare',
+        'Lilavati Hospital',
+        'AIIMS Delhi',
+        'Bhatia Hospital'
+      ];
+      
+      const hospitals = [];
+      
+      // India bounds: lat 8-35, lng 68-97
+      for (let i = 0; i < 4; i++) {
+        const randomLat = 8 + Math.random() * 27;
+        const randomLng = 68 + Math.random() * 29;
+        
+        hospitals.push({
+          id: i + 1,
+          name: hospitalNames[i],
+          position: { lat: parseFloat(randomLat.toFixed(4)), lng: parseFloat(randomLng.toFixed(4)) },
+          icuBeds: Math.floor(Math.random() * 5) + 5,
+          totalICUBeds: 12,
+          specialists: Math.floor(Math.random() * 4) + 4,
+          totalSpecialists: 8,
+          emergencyLoad: Math.floor(Math.random() * 60) + 20,
+          stabTime: `${Math.floor(Math.random() * 2) + 1}-${Math.floor(Math.random() * 2) + 3} hrs`
+        });
+      }
+      
+      return hospitals;
+    }
+    
+    const mockHospitals = generateRandomHospitals();
+    
+    // ==================== APP STATE ====================
+    let appState = {
+      selectedHospital: 1,
+      isOnline: navigator.onLine,
+      isCritical: false,
+      journeyProgress: 45,
+      trafficStatus: 'smooth' // smooth, moderate, heavy
+    };
+    
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      initUI();
+      initEventListeners();
+      updateSystemTime();
+      renderHospitals();
+      
+      // Calculate confidence scores for all hospitals and auto-select best one
+      const hospitalScores = mockHospitals.map(h => ({
+        id: h.id,
+        confidence: calculateConfidenceScore(h),
+        readiness: calculateReadinessScore(h)
+      }));
+      
+      // Find hospital with highest confidence
+      const bestHospital = hospitalScores.reduce((prev, current) => 
+        current.confidence > prev.confidence ? current : prev
+      );
+      
+      console.log('🏥 Hospital Confidence Scores:', hospitalScores);
+      console.log('🎯 Auto-selected best hospital (ID:', bestHospital.id, ', Confidence:', bestHospital.confidence + '%)');
+      
+      // Auto-select the top confidence hospital
+      selectHospital(bestHospital.id);
+      
+      simulateAmbulanceMovement();
+      setInterval(updateSystemTime, 1000);
+    });
+    
+    // ==================== UI INITIALIZATION ====================
+    function initUI() {
+      updateNetworkStatus();
+      window.addEventListener('online', updateNetworkStatus);
+      window.addEventListener('offline', updateNetworkStatus);
+    }
+    
+    // ==================== UPDATE NETWORK STATUS ====================
+    function updateNetworkStatus() {
+      appState.isOnline = navigator.onLine;
+      const indicator = document.getElementById('networkIndicator');
+      const text = document.getElementById('networkText');
+      
+      if (appState.isOnline) {
+        indicator.classList.remove('offline');
+        text.textContent = 'Online';
+      } else {
+        indicator.classList.add('offline');
+        text.textContent = 'Offline';
+      }
+    }
+    
+    // ==================== UPDATE SYSTEM TIME ====================
+    function updateSystemTime() {
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('systemTime').textContent = time;
+    }
+    
+    // ==================== EVENT LISTENERS ====================
+    function initEventListeners() {
+      document.getElementById('statusToggle').addEventListener('change', (e) => {
+        appState.isCritical = e.target.checked;
+        updateStatusDisplay();
+        if (appState.isCritical) {
+          recalculateRoute();
+        }
+      });
+      
+      document.getElementById('recalculateBtn').addEventListener('click', recalculateRoute);
+    }
+    
+    // ==================== UPDATE STATUS DISPLAY ====================
+    function updateStatusDisplay() {
+      const indicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
+      
+      if (appState.isCritical) {
+        indicator.classList.add('critical');
+        statusText.textContent = 'Critical';
+        appState.trafficStatus = ['moderate', 'heavy'][Math.floor(Math.random() * 2)];
+      } else {
+        indicator.classList.remove('critical');
+        statusText.textContent = 'Normal';
+        appState.trafficStatus = 'smooth';
+      }
+      
+      updateTrafficDisplay();
+      recalculateRoute();
+    }
+    
+    // ==================== HOSPITAL READINESS SCORING ====================
+    function calculateReadinessScore(hospital) {
+      // ICU availability (30%)
+      const icuScore = (hospital.icuBeds / hospital.totalICUBeds) * 30;
+      
+      // Specialist availability (25%)
+      const specialistScore = (hospital.specialists / hospital.totalSpecialists) * 25;
+      
+      // Emergency load inverse (30%)
+      const loadScore = (1 - hospital.emergencyLoad / 100) * 30;
+      
+      // Stabilization time inverse (15%)
+      const timeMinutes = parseInt(hospital.stabTime.split('-')[1]) * 60;
+      const timeScore = Math.max(100 - (timeMinutes * 0.15), 0) * (15 / 100);
+      
+      return Math.round((icuScore + specialistScore + loadScore + timeScore) * 1.2);
+    }
+    
+    // ==================== HAVERSINE DISTANCE CALCULATION ====================
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    }
+    
+    // ==================== CALCULATE ETA ====================
+    function calculateETA(distance) {
+      let speed = 60; // base speed km/h
+      
+      if (appState.trafficStatus === 'moderate') speed = 40;
+      if (appState.trafficStatus === 'heavy') speed = 25;
+      
+      // Account for critical status (faster response)
+      if (appState.isCritical) speed = Math.min(speed * 1.3, 80);
+      
+      const minutes = Math.ceil((distance / speed) * 60);
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      
+      return minutes <= 60 ? `${mins}m` : `${hours}h ${mins}m`;
+    }
+    
+    // ==================== CALCULATE CONFIDENCE SCORE ====================
+    function calculateConfidenceScore(hospital) {
+      const readiness = calculateReadinessScore(hospital);
+      
+      // Traffic factor (lower traffic = higher confidence)
+      let trafficFactor = 100;
+      if (appState.trafficStatus === 'moderate') trafficFactor = 80;
+      if (appState.trafficStatus === 'heavy') trafficFactor = 60;
+      
+      // Combined score (60% readiness, 40% traffic)
+      return Math.round((readiness * 0.6 + trafficFactor * 0.4));
+    }
+    
+    // ==================== RENDER HOSPITALS ============= */
+    function renderHospitals() {
+      const hospitalsGroup = document.getElementById('hospitals');
+      hospitalsGroup.innerHTML = '';
+      
+      mockHospitals.forEach(hospital => {
+        // Calculate map position (scale to SVG viewBox)
+        const x = (hospital.position.lng - 79) * 200 + 350;
+        const y = (13.5 - hospital.position.lat) * 200 + 150;
+        
+        // Hospital marker group
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('data-hospital-id', hospital.id);
+        g.style.cursor = 'pointer';
+        
+        // Hospital building icon (animated)
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x - 8);
+        rect.setAttribute('y', y - 8);
+        rect.setAttribute('width', '16');
+        rect.setAttribute('height', '16');
+        rect.setAttribute('fill', hospital.id === appState.selectedHospital ? '#059669' : '#0ea5e9');
+        rect.setAttribute('stroke', hospital.id === appState.selectedHospital ? '#047857' : '#0284c7');
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('rx', '2');
+        
+        // Pulsing animation for selected hospital
+        if (hospital.id === appState.selectedHospital) {
+          const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animate');
+          animate.setAttribute('attributeName', 'r');
+          animate.setAttribute('values', '8;12;8');
+          animate.setAttribute('dur', '1.5s');
+          animate.setAttribute('repeatCount', 'indefinite');
+        }
+        
+        // Hospital label
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y + 25);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '10');
+        text.setAttribute('fill', '#1e3a8a');
+        text.setAttribute('font-weight', '600');
+        text.textContent = hospital.name.split(' ')[0];
+        
+        g.appendChild(rect);
+        g.appendChild(text);
+        
+        g.addEventListener('click', () => selectHospital(hospital.id));
+        hospitalsGroup.appendChild(g);
+      });
+    }
+    
+    // ==================== SELECT HOSPITAL ====================
+    function selectHospital(hospitalId) {
+      appState.selectedHospital = hospitalId;
+      const hospital = mockHospitals.find(h => h.id === hospitalId);
+      
+      if (!hospital) return;
+      
+      // Update hospital details panel
+      const distance = calculateDistance(
+        mockAmbulance.position.lat,
+        mockAmbulance.position.lng,
+        hospital.position.lat,
+        hospital.position.lng
+      );
+      
+      const eta = calculateETA(distance);
+      const readiness = calculateReadinessScore(hospital);
+      const confidence = calculateConfidenceScore(hospital);
+      
+      // Update UI
+      document.getElementById('hospitalName').textContent = hospital.name;
+      document.getElementById('icuBeds').textContent = `${hospital.icuBeds}/${hospital.totalICUBeds}`;
+      document.getElementById('specialists').textContent = `${hospital.specialists}/${hospital.totalSpecialists}`;
+      document.getElementById('emergencyLoad').textContent = `${hospital.emergencyLoad}%`;
+      document.getElementById('stabTime').textContent = hospital.stabTime;
+      document.getElementById('readinessScore').textContent = `${readiness}%`;
+      document.getElementById('readinessFill').style.width = `${readiness}%`;
+      document.getElementById('confidenceScore').textContent = `${confidence}%`;
+      
+      document.getElementById('distanceVal').textContent = `${distance} km`;
+      document.getElementById('etaVal').textContent = eta;
+      
+      // Update route path
+      const ambulancePos = document.getElementById('ambulancePos');
+      const routePath = document.getElementById('routePath');
+      
+      const startX = ambulancePos.getAttribute('cx');
+      const startY = ambulancePos.getAttribute('cy');
+      const endX = (hospital.position.lng - 79) * 200 + 350;
+      const endY = (13.5 - hospital.position.lat) * 200 + 150;
+      
+      routePath.setAttribute('points', `${startX},${startY} ${(parseFloat(startX) + endX) / 2},${(parseFloat(startY) + endY) / 2 - 30} ${endX},${endY}`);
+      
+      // Generate QR code
+      generateQRCode(hospital);
+      
+      // Update hospital markers
+      renderHospitals();
+      
+      // Show comparison
+      updateHospitalComparison(hospitalId);
+      
+      // Check for overload
+      if (hospital.emergencyLoad >= 90) {
+        showAlert(`${hospital.name} is at critical capacity!`);
+      }
+    }
+    
+    // ==================== GENERATE QR CODE ====================
+    function generateQRCode(hospital) {
+      const qrData = {
+        patientID: mockPatient.id,
+        emergencyType: mockPatient.emergencyType,
+        severity: mockPatient.severity,
+        destination: hospital.name,
+        timestamp: new Date().toISOString()
+      };
+      
+      const qrContainer = document.getElementById('qrCode');
+      qrContainer.innerHTML = '';
+      
+      new QRCode(qrContainer, {
+        text: JSON.stringify(qrData),
+        width: 120,
+        height: 120,
+        colorDark: '#1e3a8a',
+        colorLight: '#ffffff'
+      });
+    }
+    
+    // ==================== UPDATE TRAFFIC DISPLAY ====================
+    function updateTrafficDisplay() {
+      const dot = document.getElementById('trafficDot');
+      const text = document.getElementById('trafficText');
+      
+      dot.className = 'traffic-dot';
+      
+      if (appState.trafficStatus === 'moderate') {
+        dot.classList.add('moderate');
+        text.textContent = 'Moderate';
+      } else if (appState.trafficStatus === 'heavy') {
+        dot.classList.add('heavy');
+        text.textContent = 'Heavy';
+      } else {
+        text.textContent = 'Smooth';
+      }
+    }
+    
+    // ==================== RECALCULATE ROUTE ====================
+    function recalculateRoute() {
+      // Simulate traffic change
+      const trafficRandom = Math.random();
+      if (appState.isCritical) {
+        appState.trafficStatus = trafficRandom < 0.3 ? 'smooth' : (trafficRandom < 0.7 ? 'moderate' : 'heavy');
+      } else {
+        appState.trafficStatus = trafficRandom < 0.5 ? 'smooth' : (trafficRandom < 0.9 ? 'moderate' : 'heavy');
+      }
+      
+      updateTrafficDisplay();
+      selectHospital(appState.selectedHospital);
+    }
+    
+    // ==================== SIMULATE AMBULANCE MOVEMENT ====================
+    function simulateAmbulanceMovement() {
+      setInterval(() => {
+        appState.journeyProgress = Math.min(appState.journeyProgress + Math.random() * 2, 100);
+        
+        const progressFill = document.getElementById('progressFill');
+        progressFill.style.width = `${appState.journeyProgress}%`;
+        
+        // Update progress text
+        const routingItem = document.querySelectorAll('.routing-item')[3];
+        if (routingItem) {
+          routingItem.querySelector('span:last-child').textContent = `${Math.round(appState.journeyProgress)}%`;
+        }
+      }, 3000);
+    }
+    
+    // ==================== HOSPITAL COMPARISON ====================
+    function updateHospitalComparison(selectedId) {
+      const comparisonDiv = document.getElementById('hospitalComparison');
+      comparisonDiv.innerHTML = '<div class="panel-title" style="margin-bottom: 8px;">Nearby Hospitals</div>';
+      
+      mockHospitals.filter(h => h.id !== selectedId).slice(0, 2).forEach(hospital => {
+        const distance = calculateDistance(
+          mockAmbulance.position.lat,
+          mockAmbulance.position.lng,
+          hospital.position.lat,
+          hospital.position.lng
+        );
+        
+        const eta = calculateETA(distance);
+        const readiness = calculateReadinessScore(hospital);
+        
+        const item = document.createElement('div');
+        item.className = 'comparison-item';
+        item.innerHTML = `
+          <div class="comparison-hospital-name">${hospital.name}</div>
+          <div class="comparison-metric">
+            <span>📍 ${distance} km</span>
+            <span>⏱️ ${eta}</span>
+          </div>
+          <div class="comparison-metric">
+            <span>✓ ${readiness}% Ready</span>
+          </div>
+        `;
+        item.addEventListener('click', () => selectHospital(hospital.id));
+        comparisonDiv.appendChild(item);
+      });
+    }
+    
+    // ==================== SHOW ALERT ====================
+    function showAlert(message) {
+      const alert = document.getElementById('alertPopup');
+      const messageEl = document.getElementById('alertMessage');
+      
+      messageEl.textContent = message;
+      alert.classList.remove('hidden');
+      
+      setTimeout(() => {
+        alert.classList.add('hidden');
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

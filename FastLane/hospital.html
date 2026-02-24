@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FastLane — Hospital Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="hospital">
+  <header class="top-nav">
+    <div class="nav-left">FastLane</div>
+    <div class="nav-right">
+      <button class="nav-link" data-page="home" onclick="location.href='index.html'">🏠 Home</button>
+      <button class="nav-link" data-page="hospital" onclick="location.href='hospital.html'">🏥 Hospital</button>
+      <button class="nav-link" data-page="driver" onclick="location.href='driver.html'">🚑 Driver</button>
+      <button id="signInBtn" class="nav-link">🔐 Sign In</button>
+      <div id="networkStatus" class="network-status">--</div>
+    </div>
+  </header>
+  <main class="container">
+    <h2 class="h1">Hospital Live Dashboard</h2>
+    <p class="muted">Resource overview and incoming ambulances (demo data).</p>
+    <div class="grid">
+      <div class="card">
+        <h3>ICU Beds</h3>
+        <div class="stat"><div><strong id="icuCount">--</strong> beds</div><div class="muted">Availability</div></div>
+      </div>
+      <div class="card">
+        <h3>General Beds</h3>
+        <div class="stat"><div><strong id="genCount">--</strong> beds</div><div class="muted">Availability</div></div>
+      </div>
+      <div class="card">
+        <h3>Trauma</h3>
+        <div class="stat"><div id="traumaStatus">--</div><div class="muted">On-call status</div></div>
+      </div>
+      <div class="card">
+        <h3>Incoming Ambulances</h3>
+        <ul id="incomingList" class="muted"></ul>
+      </div>
+    </div>
+    <section style="margin-top:12px" class="card">
+      <h3>Emergency Load Meter</h3>
+      <div class="meter" aria-hidden><i style="width:60%"></i></div>
+      <div class="muted" style="margin-top:8px">Current load: High</div>
+    </section>
+  </main>
+
+  <div class="sos-float"><button id="sos-button" class="sos-btn" title="Click to trigger SOS Emergency">🔴 SOS Emergency</button></div>
+
+  <script src="script.js"></script>
+  <script src="sos_emergency.js"></script>
+</body>
+</html>

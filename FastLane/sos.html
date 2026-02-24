@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FastLane — Emergency Dispatch</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="sos">
+  <header class="top-nav">
+    <div class="nav-left">FastLane</div>
+    <div class="nav-right">
+      <button class="nav-link" data-page="home" onclick="location.href='index.html'">🏠 Home</button>
+      <button id="signInBtn" class="nav-link">🔐 Sign In</button>
+      <div id="networkStatus" class="network-status">--</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card" style="text-align:center">
+      <h2 class="h1">🚨 Emergency Dispatch Confirmed</h2>
+      <p id="sosStatus" class="muted">Dispatching nearest ambulance...</p>
+      
+      <div id="sosSpinner" style="margin:18px auto;width:56px;height:56px;border-radius:50%;border:6px solid rgba(0,0,0,.06);border-top-color:var(--red);animation:spin 1.2s linear infinite"></div>
+      
+      <div class="card" style="margin:20px 0;background:#fff4f6;border:2px solid rgba(214,40,40,.12)">
+        <h3 style="color:var(--red);margin-top:0">Countdown</h3>
+        <div style="font-size:48px;font-weight:900;color:var(--red)"><span id="sosCountdown">--</span>s</div>
+      </div>
+
+      <section class="card" style="margin:16px 0">
+        <h4>Assigned Ambulance</h4>
+        <div style="font-size:24px;font-weight:700;color:#1672ff"><span id="ambulanceId">--</span></div>
+        <div style="margin-top:12px;color:var(--muted)">ETA: <strong style="color:#000" id="etaTime">--</strong></div>
+      </section>
+
+      <section class="card" style="margin:16px 0">
+        <h4>Golden Hour Countdown</h4>
+        <div style="font-size:32px;font-weight:700;color:#ff8a00"><span id="goldenCountdown">60:00</span></div>
+        <p class="muted" style="margin:8px 0">Time is critical. Prepare for arrival.</p>
+      </section>
+
+      <div style="margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="nav-link" onclick="location.href='index.html'" style="padding:10px 16px">Back to Home</button>
+        <button id="cancelSosBtn" class="nav-link" style="padding:10px 16px;background:#ccc;color:#333">Cancel SOS</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+  <script src="sos_emergency.js"></script>
+</body>
+</html>
